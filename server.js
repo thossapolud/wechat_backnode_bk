@@ -37,37 +37,12 @@ const firebaseConfig = {
   const firestore = firebase.firestore();
 
   
-//   var mysql      = require('mysql');
-//   var connection = mysql.createConnection({
-//     host     : 'localhost',
-//     user     : 'root',
-//     password : '',
-//     database : 'bacc9_line',
-//     port: 8080
-//   });
-  
-//   connection.connect();
-
-// var mysql = require('mysql');
-
-// var mysql = require('mysql');
-// var pool  = mysql.createPool({
-//   connectionLimit : 10,
-//   host            : 'localhost',
-//   user            : 'root',
-//   password        : '1234',
-//   database        : 'bacc9_line'
-// });
-// pool.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-//   if (error) throw error;
-//   console.log('The solution is: ', results[0].solution);
-// });
 var con = mysql.createConnection({
     host : 'localhost',
     user : 'root',
-    password : '1234',
-    database : 'bacc9_line',
-    port : '80',
+    password : '',
+    database : 'wechat',
+    port : '3306',
 })
 
 con.connect((err)=>{
@@ -77,27 +52,11 @@ if(err){
 }
 console.log('Connection success')
 })
-
-
-
-// con.connect(function(err) {
-//        console.log('test = ',err);
-// });
-
-// var connection = mysql.createConnection({
-//        host: 'localhost',
-//        user: 'root',
-//        password: '',
-//        database: 'bacc9_line'
-// });
-// connection.connect(function(err) {
-//        console.log('test = ',err);
-// });
   
 
 
 const bodyParser = require('body-parser')
-const { date } = require('joi')
+const { date, func } = require('joi')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
@@ -122,6 +81,8 @@ app.use(function (req, res, next) { // แก้ Access-Control-Allow-Origin
     // Pass to next layer of middleware
     next();
   });
+
+
 
 app.post('/webhook', (req, res) => {
     let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
@@ -149,12 +110,64 @@ app.get('/', function (req, res) {
     res.send('Hello World!')
   })
 
-app.get('/testquery', function (req, res) {
-    con.query("SELECT * FROM user", function (err, result, fields) {
+app.get('/getAllGroupLine', function (req, res) {
+    con.query("SELECT * FROM groupline", function (err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        // console.log(result);
+        res.json(result)
       });
  })
+
+ app.post('/setGroupLine', function(req,res){
+  //  res.send('test')
+  let groupline_lineid = req.body.groupline_lineid
+  let groupline_secret = req.body.groupline_secret
+  let groupline_name = req.body.groupline_name
+  let groupline_token = req.body.groupline_token
+  let url = req.body.url
+  let groupline_chatcolor = req.body.groupline_chatcolor
+  let groupline_textcolor = req.body.groupline_textcolor
+  let groupline_rich_menu_a = req.body.groupline_rich_menu_a
+  let groupline_rich_menu_b = req.body.groupline_rich_menu_b
+  let groupline_itf_auth = req.body.groupline_itf_auth
+  let groupline_url = req.body.groupline_url
+  let s_token = req.body.s_token
+
+  
+
+  let vinsert = "INSERT INTO `groupline`(`groupline_id`, `groupline_lineid`, `groupline_secret`, `groupline_name`, `groupline_token`, `url`, `groupline_chatcolor`, `groupline_textcolor`, `groupline_rich_menu_a`, `groupline_rich_menu_b`, `groupline_itf_auth`, `groupline_url`, `s_token`)"
+  let vvalue = "VALUES ('"+groupline_lineid+"','"+groupline_lineid+"','"+groupline_secret+"','"+groupline_name+"','"+groupline_token+"','"+url+"','"+groupline_chatcolor+"','"+groupline_textcolor+"','"+groupline_rich_menu_a+"','"+groupline_rich_menu_b+"','"+groupline_itf_auth+"','"+groupline_url+"','"+s_token+"')"
+  console.log('test === ', req.body)
+  // console.log('test == ', vinsert+" "+vvalue);
+
+   con.query(vinsert+" "+vvalue, function(err, result, fields) {
+    res.status(404)
+   })
+   res.status(200)
+ })
+
+
+ app.post('/updateGroupLine', function(req,res){
+  let groupline_id = req.body.groupline_id
+  let groupline_secret = req.body.groupline_secret
+  let groupline_name = req.body.groupline_name
+  let groupline_token = req.body.groupline_token
+  let url = req.body.url
+  let groupline_chatcolor = req.body.groupline_chatcolor
+  let groupline_textcolor = req.body.groupline_textcolor
+  let groupline_rich_menu_a = req.body.groupline_rich_menu_a
+  let groupline_rich_menu_b = req.body.groupline_rich_menu_b
+  let groupline_itf_auth = req.body.groupline_itf_auth
+  let groupline_url = req.body.groupline_url
+  let s_token = req.body.s_token
+
+let query = "UPDATE `groupline` SET `groupline_lineid`=[value-2],`groupline_secret`=[value-3],`groupline_name`=[value-4],`groupline_token`=[value-5],`url`=[value-6],`groupline_chatcolor`=[value-8],`groupline_textcolor`=[value-9],`groupline_rich_menu_a`=[value-10],`groupline_rich_menu_b`=[value-11],`groupline_itf_auth`=[value-12],`groupline_url`=[value-13],`s_token`=[value-14] WHERE `groupline_id`"
+
+  
+
+ }
+
+
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!')
