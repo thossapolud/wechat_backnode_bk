@@ -3,27 +3,9 @@ const app = express()
 const request = require('request')
 const lineAccessToken = "rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU="
 const firebase = require('firebase')
-const mysql = require('mysql');
+const mysql = require('mysql'); 
 
-// require("firebase/firestore");
-// const firebaseConfig = {
-//   apiKey: "AIzaSyBR0kstVOmbMCE6WuaSiXImg5hCAcTpowM",
-//   authDomain: "messages-d18e7.firebaseapp.com",
-//   databaseURL: "https://messages-d18e7-default-rtdb.firebaseio.com",
-//   projectId: "messages-d18e7",
-//   storageBucket: "messages-d18e7.appspot.com",
-//   messagingSenderId: "344571973812",
-//   appId: "1:344571973812:web:606441221459ed5fa787e1",
-//   measurementId: "G-MXKDDZHQ2X"
-// };
-
-// Initialize Firebase
-// firebase.initializeApp(firebaseConfig);
-
-// var db = firebase.firestore();
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-
-const firebaseConfig = {
+const firebaseConfig = { //firebase
     apiKey: "AIzaSyBR0kstVOmbMCE6WuaSiXImg5hCAcTpowM",
     authDomain: "messages-d18e7.firebaseapp.com",
     databaseURL: "https://messages-d18e7-default-rtdb.firebaseio.com",
@@ -37,7 +19,7 @@ const firebaseConfig = {
   const firestore = firebase.firestore();
 
   
-var con = mysql.createConnection({
+var con = mysql.createConnection({ //mysql
     host : 'localhost',
     user : 'root',
     password : '',
@@ -53,10 +35,11 @@ if(err){
 console.log('Connection success')
 })
   
-
+//-------
 
 const bodyParser = require('body-parser')
 const { date, func } = require('joi')
+// const { default: col } = require('framework7-vue/cjs/components/col')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
@@ -83,26 +66,28 @@ app.use(function (req, res, next) { // แก้ Access-Control-Allow-Origin
   });
 
 
-
+//-----line
 app.post('/webhook', (req, res) => {
+    let data
     let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
-    let reply_message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
-    let reply_line_userID = req.body.events[0].source.userId
-    let type = req.body.events[0].source.type
+    let message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
+    let lineUserId = req.body.events[0].source.userId
+    let typeMessage = req.body.events[0].source.type
     let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
     let mode =req.body.events[0].mode
-    let destination =req.body.destination
+    let lineAdId =req.body.destination
 
-    console.log('req = ',req.body.events[0].message)
+
+    // console.log('req = ',req.body.events[0].message)
     console.log('req body = ', req.body)
-    console.log('reply_token = ', reply_token)
+    // console.log('reply_token = ', reply_token)
     // reply(reply_token,reply_message)
-    writeLineData(reply_token,reply_message,reply_line_userID,type,timestamp,mode,destination)
-
+    writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
+    // writeLineData(data)
 
     res.sendStatus(200)
     // res.send('test=')
-    // console.log('test ===', req.body.events)
+    console.log('test ===', req.body.events)
     // console.log('test_message ===', test_message.text)
 })
 
@@ -111,12 +96,15 @@ app.get('/', function (req, res) {
   })
 
 app.get('/getAllGroupLine', function (req, res) {
-    con.query("SELECT * FROM groupline", function (err, result, fields) {
+    con.query("SELECT * FROM groupline where active = 1 ", function (err, result, fields) {
         if (err) throw err;
         // console.log(result);
         res.json(result)
       });
  })
+
+
+ //----- group line
 
  app.post('/setGroupLine', function(req,res){
   //  res.send('test')
@@ -133,39 +121,150 @@ app.get('/getAllGroupLine', function (req, res) {
   let groupline_url = req.body.groupline_url
   let s_token = req.body.s_token
 
-  
-
-  let vinsert = "INSERT INTO `groupline`(`groupline_id`, `groupline_lineid`, `groupline_secret`, `groupline_name`, `groupline_token`, `url`, `groupline_chatcolor`, `groupline_textcolor`, `groupline_rich_menu_a`, `groupline_rich_menu_b`, `groupline_itf_auth`, `groupline_url`, `s_token`)"
-  let vvalue = "VALUES ('"+groupline_lineid+"','"+groupline_lineid+"','"+groupline_secret+"','"+groupline_name+"','"+groupline_token+"','"+url+"','"+groupline_chatcolor+"','"+groupline_textcolor+"','"+groupline_rich_menu_a+"','"+groupline_rich_menu_b+"','"+groupline_itf_auth+"','"+groupline_url+"','"+s_token+"')"
+  let vinsert = "INSERT INTO `groupline`( `groupline_lineid`, `groupline_secret`, `groupline_name`, `groupline_token`, `url`, `groupline_chatcolor`, `groupline_textcolor`, `groupline_rich_menu_a`, `groupline_rich_menu_b`, `groupline_itf_auth`, `groupline_url`, `s_token`)"
+  let vvalue = "VALUES ('"+req.body.groupline_lineid+"','"+req.body.groupline_secret+"','"+req.body.groupline_name+"','"+req.body.groupline_token+"','"+req.body.url+"','"+req.body.groupline_chatcolor+"','"+req.body.groupline_textcolor+"','"+req.body.groupline_rich_menu_a+"','"+req.body.groupline_rich_menu_b+"','"+req.body.groupline_itf_auth+"','"+req.body.groupline_url+"','"+req.body.s_token+"')"
+  let queryString = vinsert+" "+vvalue
   console.log('test === ', req.body)
   // console.log('test == ', vinsert+" "+vvalue);
 
-   con.query(vinsert+" "+vvalue, function(err, result, fields) {
-    res.status(404)
+  con.query(queryString, (err, results) => {
+    if (err) {
+     return res.sendStatus(500)
+     console.log('success')
+    }
+    // res.send(`Solution = ${results.message}`)
+    res.end(JSON.stringify(results))
+    console.log('success')
    })
-   res.status(200)
  })
 
 
- app.post('/updateGroupLine', function(req,res){
-  let groupline_id = req.body.groupline_id
-  let groupline_secret = req.body.groupline_secret
-  let groupline_name = req.body.groupline_name
-  let groupline_token = req.body.groupline_token
-  let url = req.body.url
-  let groupline_chatcolor = req.body.groupline_chatcolor
-  let groupline_textcolor = req.body.groupline_textcolor
-  let groupline_rich_menu_a = req.body.groupline_rich_menu_a
-  let groupline_rich_menu_b = req.body.groupline_rich_menu_b
-  let groupline_itf_auth = req.body.groupline_itf_auth
-  let groupline_url = req.body.groupline_url
-  let s_token = req.body.s_token
-
-let query = "UPDATE `groupline` SET `groupline_lineid`=[value-2],`groupline_secret`=[value-3],`groupline_name`=[value-4],`groupline_token`=[value-5],`url`=[value-6],`groupline_chatcolor`=[value-8],`groupline_textcolor`=[value-9],`groupline_rich_menu_a`=[value-10],`groupline_rich_menu_b`=[value-11],`groupline_itf_auth`=[value-12],`groupline_url`=[value-13],`s_token`=[value-14] WHERE `groupline_id`"
-
+app.post('/updateGroupLine', function(req,res){
+  console.log('req = ',req.body)
+  // res.send('test')
+  let queryString = "UPDATE `groupline` SET `groupline_lineid`= '"+req.body.groupline_lineid+" ',`groupline_secret`='"+req.body.groupline_secret+"',`groupline_name`='"+req.body.groupline_name+"',`groupline_token`='"+req.body.groupline_token+"',`url`='"+req.body.url+"',`groupline_chatcolor`='"+req.body.groupline_chatcolor+"',`groupline_textcolor`='"+req.body.groupline_textcolor+"',`groupline_rich_menu_a`='"+req.body.groupline_rich_menu_a+"',`groupline_rich_menu_b`='"+req.body.groupline_rich_menu_b+"',`groupline_itf_auth`='"+req.body.groupline_itf_auth+"',`groupline_url`='"+req.body.groupline_url+"',`s_token`='"+req.body.s_token+"' WHERE `groupline_id`='"+req.body.groupline_id+"'"
   
+  con.query(queryString, (err, results) => {
+    if (err) {
+     return res.sendStatus(500)
+     console.log('success')
+    }
+    // res.send(`Solution = ${results.message}`)
+    res.end(JSON.stringify(results))
+    console.log('success')
+   })
+   
+})
 
- }
+app.post('/deleteGroupLine', function(req,res){
+let queryString = "UPDATE `groupline` SET `active`= 0 WHERE groupline_id = '"+req.body.groupline_id+"' "
+
+con.query(queryString, (err, results) => {
+  if (err) {
+   return res.sendStatus(500)
+  }
+  // res.send(`Solution = ${results.message}`)
+  res.end(JSON.stringify(results))
+  console.log('success')
+ })
+})
+
+//------- Manage User
+
+app.get('/getAllUser', function (req, res) {
+  con.query("SELECT * FROM user WHERE active = 1", function (err, result, fields) {
+      if (err) throw err;
+      // console.log(result);
+      res.json(result)
+    });
+})
+
+app.post('/insertUser', function(req,res){
+  console.log('log == ', req.body)
+let queryString = "INSERT INTO `user`( `username`, `password`, `user_group`) VALUES ('"+req.body.username+"','"+req.body.password+"','"+req.body.user_group+"')"
+con.query(queryString, (err, results) => {
+  if (err) {
+   return res.sendStatus(500)
+  }
+  // res.send(`Solution = ${results.message}`)
+  res.end(JSON.stringify(results))
+  console.log('success')
+ })
+})
+
+
+app.post('/updatePasswordUser', function(req,res){
+  console.log('log == ', req.body)
+let queryString = "UPDATE `user` SET password = '"+req.body.password+"' WHERE user_id = '"+req.body.user_id+"'"
+con.query(queryString, (err, results) => {
+  if (err) {
+   return res.sendStatus(500)
+  }
+  // res.send(`Solution = ${results.message}`)
+  res.end(JSON.stringify(results))
+  console.log('success')
+ })
+})
+
+app.post('/deleteUser',(req,res)=>{
+  let queryString = "UPDATE `user` SET `active`= 0 WHERE user_id = '"+req.body.userId+"' "
+
+  con.query(queryString, (err, results) => {
+    if (err) {
+     return res.sendStatus(500)
+    }
+    // res.send(`Solution = ${results.message}`)
+    res.end(JSON.stringify(results))
+    console.log('success')
+   })
+})
+
+    // responsible
+
+
+app.get("/getAllResponsible",(req,res)=>{
+  console.log('test == ', req.body)
+  let queryString = "SELECT groupline_responsible.id, groupline_responsible.groupline_id ,groupline.groupline_name ,groupline_responsible.user_id, user.username   FROM `groupline_responsible` LEFT JOIN groupline ON groupline_responsible.groupline_id = groupline.groupline_id LEFT JOIN user on groupline_responsible.user_id = user.user_id"
+  con.query(queryString, (err, result) => {
+    if (err) throw err;
+    // console.log(result);
+    res.json(result)
+  })
+})
+
+app.post("/getAllResponsibleByGroup",(req,res)=>{ //req groupline_responsible.groupline_id
+  console.log('test == ', req.body)
+  let queryString = "SELECT groupline_responsible.id, groupline_responsible.groupline_id ,groupline.groupline_name ,groupline_responsible.user_id, user.username   FROM `groupline_responsible` LEFT JOIN groupline ON groupline_responsible.groupline_id = groupline.groupline_id LEFT JOIN user on groupline_responsible.user_id = user.user_id WHERE groupline_responsible.groupline_id='"+req.body.groupline_id+"'"
+  con.query(queryString, (err, result) => {
+    if (err) throw err;
+    // console.log(result);
+    res.json(result)
+  })
+})
+
+app.post("/getAllResponsibleByUser",(req,res)=>{ //req groupline_responsible.groupline_id
+  console.log('test == ', req.body)
+  let queryString = "SELECT groupline_responsible.id, groupline_responsible.groupline_id ,groupline.groupline_name ,groupline_responsible.user_id, user.username   FROM `groupline_responsible` LEFT JOIN groupline ON groupline_responsible.groupline_id = groupline.groupline_id LEFT JOIN user on groupline_responsible.user_id = user.user_id WHERE groupline_responsible.user_id ='"+req.body.user_id+"'"
+  con.query(queryString, (err, result) => {
+    if (err) throw err;
+    // console.log(result);
+    res.json(result)
+  })
+})
+
+app.post("/insertResponsible",(req,res)=>{
+  console.log('test == ', req.body)
+  let queryString = "INSERT INTO `groupline_responsible`(`groupline_id`, `user_id`) VALUES ('"+req.body.groupline_id+"','"+req.body.user_id+"')"
+  con.query(queryString, (err, results) => {
+    if (err) {
+     return res.sendStatus(500)
+    }
+    // res.send(`Solution = ${results.message}`)
+    res.end(JSON.stringify(results))
+    console.log('success')
+   })
+})
+
 
 
 
@@ -173,7 +272,8 @@ app.listen(3000, function () {
   console.log('Example app listening on port 3000!')
 })
 
-// insert
+
+// insert Message Line
 app.post("/message", async (req, res) => {
     try {
       const data = req.body;
@@ -193,22 +293,45 @@ app.post("/message", async (req, res) => {
   });
 
 app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไปเก็บใน Firebase จากนั้นทำการกำหนด reply_message ส่งกลับไป ส่งได้ 5 message ต่อ 1 Token
-    let reply_token = ''
-    let reply_message = req.body.message
-    let reply_to = req.body.sendTo
-    let destination = req.body.senderlineUserId
+    // let reply_token = ''
+    // let reply_message = req.body.message
+    // let reply_to = req.body.sendTo
+    // let destination = req.body.senderlineUserId
+    // let reply_token : req.body.
+    let data
+    let reply_token = req.body.reply_token
+    let message = req.body.message
+    let lineUserId = req.body.lineUserId
+    let typeMessage = req.body.typeMessage
+    let vmod = req.body.lineAdId 
+    let type = req.body.type
+    let read = req.body.read 
+    let createdAt = req.body.createdAt
+    // console.log('req ==', req.body)
+
+    data = {
+        'reply_token' : reply_token,
+        'message' : message,
+        'lineUserId' : lineUserId,
+        'typeMessage' : typeMessage,
+        'vmod' : vmod,
+        'type' : type,
+        'read' : read,
+        'createdAt' : createdAt
+      }
 
     firestore.collection("lineMessage").doc().set({
-        vreply_message : reply_message,
-        vreply_line_userID : reply_to,
-        vdestination : destination,
-        statusMessage : 'send',
-        read : 0,
-        createdAt : new Date()
+      reply_token : reply_token,
+      message : message,
+      lineUserId : lineUserId,
+      typeMessage : typeMessage,
+      vmod : vmod,
+      type : type,
+      read : read,
+      createdAt : createdAt
     })
-    
 
-    reply(reply_token,reply_message,reply_to)
+    reply(data)
     
     res.sendStatus(200)
 
@@ -224,25 +347,26 @@ app.post("/testapi",(req,res)=>{
 })
 
 
-function writeLineData(reply_token,reply_message,reply_line_userID,type,timestamp,mode,destination) {
+function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId) {
+  // console.log('log data = ', item)
     firestore.collection("lineMessage").doc().set({
-        vreply_token : reply_token,
-        vreply_message : reply_message,
-        vreply_line_userID : reply_line_userID,
-        vtype : type,
-        vtimesLinetamp : timestamp,
+      reply_token : reply_token,
+      message : message,
+      lineUserId : lineUserId,
+      typeMessage : typeMessage,
+      timestamp : timestamp,
         vmode : mode,
-        vdestination : destination,
-        statusMessage : 'receive',
+        lineAdId : lineAdId,
+        type : 'in',
         read : 0,
         createdAt : new Date()
         
     })
-    // console.log('status = ' + res.statusCode);
 }
 
 
-function reply(reply_token,reply_message,reply_to) {
+function reply(data) {
+  console.log('data = ', data)
     // const reply_token = '5c24c5b1b61a4516b30a83679c564c23'
     // const reply_message = 'ทดสอบยิง'
     let headers = {
@@ -251,14 +375,14 @@ function reply(reply_token,reply_message,reply_to) {
     }
     let body = JSON.stringify({
         // replyToken: reply_token,
-        to: reply_to,
+        to: data.lineUserId,
         messages: [{
             type: 'text',
-            text: reply_message
+            text: data.message
         }]
     }) 
-    console.log('headers = ', headers)
-    console.log('body = ', body)
+    // console.log('headers = ', headers)
+    // console.log('body = ', body)
 
     request.post({
         // url: 'https://api.line.me/v2/bot/message/reply',
