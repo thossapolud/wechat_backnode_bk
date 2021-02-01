@@ -3,7 +3,8 @@ const app = express()
 const request = require('request')
 const lineAccessToken = "rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU="
 const firebase = require('firebase')
-const mysql = require('mysql'); 
+// const mysql = require('mysql'); 
+const firebaseKey = require("firebase-key");
 
 const firebaseConfig = { //firebase
     apiKey: "AIzaSyBR0kstVOmbMCE6WuaSiXImg5hCAcTpowM",
@@ -17,23 +18,6 @@ const firebaseConfig = { //firebase
   };
   firebase.initializeApp(firebaseConfig);
   const firestore = firebase.firestore();
-
-  
-var con = mysql.createConnection({ //mysql
-    host : 'localhost',
-    user : 'root',
-    password : '',
-    database : 'wechat',
-    port : '3306',
-})
-
-con.connect((err)=>{
-if(err){
-    console.log('Error connect to Db', err)
-    return 
-}
-console.log('Connection success')
-})
   
 //-------
 
@@ -76,18 +60,26 @@ app.post('/webhook', (req, res) => {
     let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
     let mode =req.body.events[0].mode
     let lineAdId =req.body.destination
+    // console.log('firebaseKey = ', firebaseKey.key());
 
-
-    // console.log('req = ',req.body.events[0].message)
-    console.log('req body = ', req.body)
-    // console.log('reply_token = ', reply_token)
+    // var messageListRef = firebase.database().ref('message_list');
+    // var newMessageRef = messageListRef.push();
+    // newMessageRef.set({
+    //   'user_id': 'ada',
+    //   'text': 'Example of text.'
+    // });
+    // var postID = newPostRef.key
+    // console.log('req  message= ',req.body.events[0].message)
+    // console.log('req source = ', req.body.events[0].source)
+    // console.log('body = ', req.body)
     // reply(reply_token,reply_message)
+    // console.log('test ===', req)
     writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
     // writeLineData(data)
 
     res.sendStatus(200)
     // res.send('test=')
-    console.log('test ===', req.body.events)
+    
     // console.log('test_message ===', test_message.text)
 })
 
@@ -95,176 +87,13 @@ app.get('/', function (req, res) {
     res.send('Hello World!')
   })
 
-app.get('/getAllGroupLine', function (req, res) {
-    con.query("SELECT * FROM groupline where active = 1 ", function (err, result, fields) {
-        if (err) throw err;
-        // console.log(result);
-        res.json(result)
-      });
- })
-
-
- //----- group line
-
- app.post('/setGroupLine', function(req,res){
-  //  res.send('test')
-  let groupline_lineid = req.body.groupline_lineid
-  let groupline_secret = req.body.groupline_secret
-  let groupline_name = req.body.groupline_name
-  let groupline_token = req.body.groupline_token
-  let url = req.body.url
-  let groupline_chatcolor = req.body.groupline_chatcolor
-  let groupline_textcolor = req.body.groupline_textcolor
-  let groupline_rich_menu_a = req.body.groupline_rich_menu_a
-  let groupline_rich_menu_b = req.body.groupline_rich_menu_b
-  let groupline_itf_auth = req.body.groupline_itf_auth
-  let groupline_url = req.body.groupline_url
-  let s_token = req.body.s_token
-
-  let vinsert = "INSERT INTO `groupline`( `groupline_lineid`, `groupline_secret`, `groupline_name`, `groupline_token`, `url`, `groupline_chatcolor`, `groupline_textcolor`, `groupline_rich_menu_a`, `groupline_rich_menu_b`, `groupline_itf_auth`, `groupline_url`, `s_token`)"
-  let vvalue = "VALUES ('"+req.body.groupline_lineid+"','"+req.body.groupline_secret+"','"+req.body.groupline_name+"','"+req.body.groupline_token+"','"+req.body.url+"','"+req.body.groupline_chatcolor+"','"+req.body.groupline_textcolor+"','"+req.body.groupline_rich_menu_a+"','"+req.body.groupline_rich_menu_b+"','"+req.body.groupline_itf_auth+"','"+req.body.groupline_url+"','"+req.body.s_token+"')"
-  let queryString = vinsert+" "+vvalue
-  console.log('test === ', req.body)
-  // console.log('test == ', vinsert+" "+vvalue);
-
-  con.query(queryString, (err, results) => {
-    if (err) {
-     return res.sendStatus(500)
-     console.log('success')
-    }
-    // res.send(`Solution = ${results.message}`)
-    res.end(JSON.stringify(results))
-    console.log('success')
-   })
- })
-
-
-app.post('/updateGroupLine', function(req,res){
-  console.log('req = ',req.body)
-  // res.send('test')
-  let queryString = "UPDATE `groupline` SET `groupline_lineid`= '"+req.body.groupline_lineid+" ',`groupline_secret`='"+req.body.groupline_secret+"',`groupline_name`='"+req.body.groupline_name+"',`groupline_token`='"+req.body.groupline_token+"',`url`='"+req.body.url+"',`groupline_chatcolor`='"+req.body.groupline_chatcolor+"',`groupline_textcolor`='"+req.body.groupline_textcolor+"',`groupline_rich_menu_a`='"+req.body.groupline_rich_menu_a+"',`groupline_rich_menu_b`='"+req.body.groupline_rich_menu_b+"',`groupline_itf_auth`='"+req.body.groupline_itf_auth+"',`groupline_url`='"+req.body.groupline_url+"',`s_token`='"+req.body.s_token+"' WHERE `groupline_id`='"+req.body.groupline_id+"'"
-  
-  con.query(queryString, (err, results) => {
-    if (err) {
-     return res.sendStatus(500)
-     console.log('success')
-    }
-    // res.send(`Solution = ${results.message}`)
-    res.end(JSON.stringify(results))
-    console.log('success')
-   })
-   
-})
-
-app.post('/deleteGroupLine', function(req,res){
-let queryString = "UPDATE `groupline` SET `active`= 0 WHERE groupline_id = '"+req.body.groupline_id+"' "
-
-con.query(queryString, (err, results) => {
-  if (err) {
-   return res.sendStatus(500)
-  }
-  // res.send(`Solution = ${results.message}`)
-  res.end(JSON.stringify(results))
-  console.log('success')
- })
-})
-
-//------- Manage User
-
-app.get('/getAllUser', function (req, res) {
-  con.query("SELECT * FROM user WHERE active = 1", function (err, result, fields) {
-      if (err) throw err;
-      // console.log(result);
-      res.json(result)
-    });
-})
-
-app.post('/insertUser', function(req,res){
-  console.log('log == ', req.body)
-let queryString = "INSERT INTO `user`( `username`, `password`, `user_group`) VALUES ('"+req.body.username+"','"+req.body.password+"','"+req.body.user_group+"')"
-con.query(queryString, (err, results) => {
-  if (err) {
-   return res.sendStatus(500)
-  }
-  // res.send(`Solution = ${results.message}`)
-  res.end(JSON.stringify(results))
-  console.log('success')
- })
-})
-
-
-app.post('/updatePasswordUser', function(req,res){
-  console.log('log == ', req.body)
-let queryString = "UPDATE `user` SET password = '"+req.body.password+"' WHERE user_id = '"+req.body.user_id+"'"
-con.query(queryString, (err, results) => {
-  if (err) {
-   return res.sendStatus(500)
-  }
-  // res.send(`Solution = ${results.message}`)
-  res.end(JSON.stringify(results))
-  console.log('success')
- })
-})
-
-app.post('/deleteUser',(req,res)=>{
-  let queryString = "UPDATE `user` SET `active`= 0 WHERE user_id = '"+req.body.userId+"' "
-
-  con.query(queryString, (err, results) => {
-    if (err) {
-     return res.sendStatus(500)
-    }
-    // res.send(`Solution = ${results.message}`)
-    res.end(JSON.stringify(results))
-    console.log('success')
-   })
-})
-
-    // responsible
-
-
-app.get("/getAllResponsible",(req,res)=>{
-  console.log('test == ', req.body)
-  let queryString = "SELECT groupline_responsible.id, groupline_responsible.groupline_id ,groupline.groupline_name ,groupline_responsible.user_id, user.username   FROM `groupline_responsible` LEFT JOIN groupline ON groupline_responsible.groupline_id = groupline.groupline_id LEFT JOIN user on groupline_responsible.user_id = user.user_id"
-  con.query(queryString, (err, result) => {
-    if (err) throw err;
-    // console.log(result);
-    res.json(result)
-  })
-})
-
-app.post("/getAllResponsibleByGroup",(req,res)=>{ //req groupline_responsible.groupline_id
-  console.log('test == ', req.body)
-  let queryString = "SELECT groupline_responsible.id, groupline_responsible.groupline_id ,groupline.groupline_name ,groupline_responsible.user_id, user.username   FROM `groupline_responsible` LEFT JOIN groupline ON groupline_responsible.groupline_id = groupline.groupline_id LEFT JOIN user on groupline_responsible.user_id = user.user_id WHERE groupline_responsible.groupline_id='"+req.body.groupline_id+"'"
-  con.query(queryString, (err, result) => {
-    if (err) throw err;
-    // console.log(result);
-    res.json(result)
-  })
-})
-
-app.post("/getAllResponsibleByUser",(req,res)=>{ //req groupline_responsible.groupline_id
-  console.log('test == ', req.body)
-  let queryString = "SELECT groupline_responsible.id, groupline_responsible.groupline_id ,groupline.groupline_name ,groupline_responsible.user_id, user.username   FROM `groupline_responsible` LEFT JOIN groupline ON groupline_responsible.groupline_id = groupline.groupline_id LEFT JOIN user on groupline_responsible.user_id = user.user_id WHERE groupline_responsible.user_id ='"+req.body.user_id+"'"
-  con.query(queryString, (err, result) => {
-    if (err) throw err;
-    // console.log(result);
-    res.json(result)
-  })
-})
-
-app.post("/insertResponsible",(req,res)=>{
-  console.log('test == ', req.body)
-  let queryString = "INSERT INTO `groupline_responsible`(`groupline_id`, `user_id`) VALUES ('"+req.body.groupline_id+"','"+req.body.user_id+"')"
-  con.query(queryString, (err, results) => {
-    if (err) {
-     return res.sendStatus(500)
-    }
-    // res.send(`Solution = ${results.message}`)
-    res.end(JSON.stringify(results))
-    console.log('success')
-   })
-})
-
+// app.get('/getAllGroupLine', function (req, res) {
+//     con.query("SELECT * FROM groupline where active = 1 ", function (err, result, fields) {
+//         if (err) throw err;
+//         // console.log(result);
+//         res.json(result)
+//       });
+//  })
 
 
 
@@ -337,18 +166,70 @@ app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไป�
 
 })
 
+app.post("/getProfile",(req,res)=>{
+  // console.log('test == req == ', req.body)
+let userWeb = req.body.userWeb
+let userWebdata =[]
+let groupLinedata = []
+let reqProfile =[]
+
+firestore.collection("responsible").where('user','==',userWeb).onSnapshot((querySnapshot)=>{
+  querySnapshot.forEach((doc) => {
+    userWebdata.push(doc.data())
+  })
+  
+
+  for (let index = 0; index < userWebdata.length; index++) {
+    // console.log('test = ', data)
+    firestore.collection("groupLine").where('groupLine_LineId','==',userWebdata[index].groupLine_UserId).onSnapshot((querySnapshot)=>{
+      querySnapshot.forEach((doc) => {
+        userWebdata.push({'data' : doc.data()})
+        console.log('groupLinedata = ', userWebdata)
+        // console.log('userWebdata = ', userWebdata)
+    //     // data[index].push({'accessToken' : doc.data().groupLine_token})
+      })
+    })
+
+
+  }
+
+  for(let index = 0; index < userWebdata.length; index++){
+
+  }
+
+})
+// res.send(req)
+res.sendStatus(200)
+})
+
 app.post("/broadcast",(req,res)=>{
  let msg = "ทดสอบ บอร์ดแคส"
  broadcast(msg)
 })
 
-app.post("/testapi",(req,res)=>{
-    console.log('test', req.body)
+app.get("/testapi",(req,res)=>{
+  let headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
+}
+
+  request.get({ //ดึงโปรไฟล์
+    url: 'https://api.line.me/v2/bot/profile/U24f73bc2b54e8d62bf34b892e6d67500',
+    headers: headers
+   
+}, (err, res, body) => {
+  // res.json(body)
+  // test.push(res)
+    // console.log('body = ', test)
+    console.log('respornc = ', JSON.parse(body))
+})
 })
 
 
 function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId) {
   // console.log('log data = ', item)
+  let checkMember = ''
+  let checkgroup = []
     firestore.collection("lineMessage").doc().set({
       reply_token : reply_token,
       message : message,
@@ -359,10 +240,101 @@ function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode
         lineAdId : lineAdId,
         type : 'in',
         read : 0,
-        createdAt : new Date()
+        createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
         
     })
+
+
+firestore.collection("memberLineGroup").where('lineUserId','==',lineUserId).onSnapshot((querySnapshot)=>{
+      // let lineAccessToken ='';
+      // let allData = [];
+      let data = ''
+      querySnapshot.forEach((doc) => {
+        // checkMember.push(doc.data())
+        data = doc.data().lineUserId
+        // allData.push(doc.data())
+        })
+        // console.log('checkMember data1 =',checkMember)
+        checkMember=data
+        // console.log('test = ',checkMember)
+        if(checkMember === '' ){
+          console.log('status = true')
+        firestore.collection("memberLineGroup").doc().set({
+            lineUserId : lineUserId,
+            lineAdId : lineAdId,
+            active : 1 ,
+            createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+          })
+        }else console.log('status = false')
+    })
+    // console.log('checkMember data =',checkMember)
+    // saveLineMember(lineUserId,lineAdId)
+    // get and set Profile member
+    // getAccessToken
+    // firestore.collection("groupLine").where('groupLine_LineId','==',lineAdId).onSnapshot((querySnapshot)=>{
+    //   let lineAccessToken ='';
+    //   // let allData = [];
+    //   querySnapshot.forEach((doc) => {
+    //     lineAccessToken = doc.data().groupLine_token
+    //     })
+    //     // allData=data
+    //     console.log('lineAccessToken data =',lineAccessToken)
+    // })
+
 }
+
+
+// function saveLineMember(lineUserId,lineAdId) {
+  // console.log('lineUserId = ', lineUserId)
+  // console.log('lineAdId = ', lineAdId)
+
+  // let lineAccessToken = ''
+  // let userID = ''
+  // let displyName = ''
+  // let pictureUrl = ''
+  // let statusLine = ''
+  // let vlineAdId = lineAdId
+
+  // console.log('vlineAdId= ', vlineAdId)
+  // firestore.collection("groupLine").where('groupLine_LineId','==' , vlineAdId).onSnapshot((querySnapshot)=>{
+  //   let data
+  //     querySnapshot.forEach((doc) => {
+  //       lineAccessToken = doc.data().groupLine_LineId
+  //       })
+  //       console.log('lineAccessToken data =',lineAccessToken)
+  //   })
+
+
+  //   let headers = {
+  //     'Content-Type': 'application/json',
+  //     'Authorization': 'Bearer '+lineAccessToken+''
+  // }
+
+  //   request.get({ //ดึงโปรไฟล์
+  //     url: 'https://api.line.me/v2/bot/profile/'+lineUserId,
+  //     headers: headers
+     
+  // }, (err, res, body) => {
+  //     console.log('body = ', JSON.parse(body))
+  //     // console.log('respornc = ' + res);
+  //     userID = JSON.parse(body.userID)
+  //     displyName = JSON.parse(body.displyName)
+  //     pictureUrl = JSON.parse(body.pictureUrl)
+  //     statusLine = JSON.parse(body.statusLine)
+
+  // })
+
+  // firestore.collection("lineMember").doc().set({
+  //   lineUserId : userID,
+  //   displyName : displyName,
+  //   pictureUrl : pictureUrl,
+  //   statusLine : statusLine,
+  //   lineAdId : lineAdId
+  // })
+  
+// }
+
+
 
 
 function reply(data) {
@@ -371,7 +343,7 @@ function reply(data) {
     // const reply_message = 'ทดสอบยิง'
     let headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU="'
+        'Authorization': 'Bearer '+lineAccessToken+''
     }
     let body = JSON.stringify({
         // replyToken: reply_token,
@@ -395,6 +367,8 @@ function reply(data) {
         console.log('status = ' + res.statusCode);
     })
 }
+
+
 
 function broadcast(msg) {
     let headers = {
@@ -426,6 +400,42 @@ function broadcast(msg) {
       }
     )
 }
+
+function test() {
+  let test = [];
+  // firestore.collection("groupLine").where('groupLine_LineId','==','U24f73bc2b54e8d62bf34b892e6d67500').onSnapshot((querySnapshot)=>{
+  //   let lineAccessToken = '';
+  //   // let allData = [];
+  //   querySnapshot.forEach((doc) => {
+  //     lineAccessToken = doc.data().groupLine_token
+  //     })
+  //     // allData=data
+  //     console.log('test data =',lineAccessToken)
+  // })
+
+  let headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
+}
+
+  request.get({ //ดึงโปรไฟล์
+    url: 'https://api.line.me/v2/bot/profile/U24f73bc2b54e8d62bf34b892e6d67500',
+    headers: headers
+   
+}, (err, res, body) => {
+  // res.json(body)
+  test.push(res)
+    // console.log('body = ', test)
+    console.log('respornc = ', res.body);
+})
+  
+  // console.log('test data ',this.messageByUser.sort())
+}
+
+
+
+
+
 
 
 
