@@ -1,0 +1,28 @@
+{
+  "name": "wechat_backnode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "file-get-contents": "^1.0.0",
+    "firebase": "^8.2.4",
+    "firebase-admin": "^9.4.2",
+    "firebase-key": "^2.0.2",
+    "joi": "^17.3.0",
+    "mysql": "^2.18.1",
+    "ngrok": "^3.4.0",
+    "request": "^2.88.2",
+    "router": "^1.3.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
