@@ -52,33 +52,33 @@ app.use(function (req, res, next) { // แก้ Access-Control-Allow-Origin
 
 //-----line
 app.post('/webhook', (req, res) => {
-    let data
-    let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
-    let message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
-    let lineUserId = req.body.events[0].source.userId
-    let typeMessage = req.body.events[0].source.type
-    let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
-    let mode =req.body.events[0].mode
-    let lineAdId =req.body.destination
-    // console.log('firebaseKey = ', firebaseKey.key());
+//     let data
+//     let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
+//     let message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
+//     let lineUserId = req.body.events[0].source.userId
+//     let typeMessage = req.body.events[0].source.type
+//     let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
+//     let mode =req.body.events[0].mode
+//     let lineAdId =req.body.destination
+//     // console.log('firebaseKey = ', firebaseKey.key());
 
-    // var messageListRef = firebase.database().ref('message_list');
-    // var newMessageRef = messageListRef.push();
-    // newMessageRef.set({
-    //   'user_id': 'ada',
-    //   'text': 'Example of text.'
-    // });
-    // var postID = newPostRef.key
-    // console.log('req  message= ',req.body.events[0].message)
-    // console.log('req source = ', req.body.events[0].source)
-    // console.log('body = ', req.body)
-    // reply(reply_token,reply_message)
-    // console.log('test ===', req)
-    writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
-    // writeLineData(data)
+//     // var messageListRef = firebase.database().ref('message_list');
+//     // var newMessageRef = messageListRef.push();
+//     // newMessageRef.set({
+//     //   'user_id': 'ada',
+//     //   'text': 'Example of text.'
+//     // });
+//     // var postID = newPostRef.key
+//     // console.log('req  message= ',req.body.events[0].message)
+//     // console.log('req source = ', req.body.events[0].source)
+//     // console.log('body = ', req.body)
+//     // reply(reply_token,reply_message)
+//     // console.log('test ===', req)
+//     writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
+//     // writeLineData(data)
 
-    res.sendStatus(200)
-    // res.send('test=')
+//     res.sendStatus(200)
+    res.send('test=')
     
     // console.log('test_message ===', test_message.text)
 })
