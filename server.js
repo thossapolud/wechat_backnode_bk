@@ -5,6 +5,7 @@ const lineAccessToken = "rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05g
 const firebase = require('firebase')
 // const mysql = require('mysql'); 
 const firebaseKey = require("firebase-key");
+const axios = require('axios');
 
 const firebaseConfig = { //firebase
     apiKey: "AIzaSyBR0kstVOmbMCE6WuaSiXImg5hCAcTpowM",
@@ -23,6 +24,7 @@ const firebaseConfig = { //firebase
 
 const bodyParser = require('body-parser')
 const { date, func } = require('joi')
+const { response } = require('express')
 // const { default: col } = require('framework7-vue/cjs/components/col')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -52,33 +54,34 @@ app.use(function (req, res, next) { // แก้ Access-Control-Allow-Origin
 
 //-----line
 app.post('/webhook', (req, res) => {
-//     let data
-//     let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
-//     let message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
-//     let lineUserId = req.body.events[0].source.userId
-//     let typeMessage = req.body.events[0].source.type
-//     let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
-//     let mode =req.body.events[0].mode
-//     let lineAdId =req.body.destination
-//     // console.log('firebaseKey = ', firebaseKey.key());
+    let data
+    let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
+    let message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
+    let lineUserId = req.body.events[0].source.userId
+    let typeMessage = req.body.events[0].source.type
+    let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
+    let mode =req.body.events[0].mode
+    let lineAdId =req.body.destination
+    // console.log('firebaseKey = ', firebaseKey.key());
 
-//     // var messageListRef = firebase.database().ref('message_list');
-//     // var newMessageRef = messageListRef.push();
-//     // newMessageRef.set({
-//     //   'user_id': 'ada',
-//     //   'text': 'Example of text.'
-//     // });
-//     // var postID = newPostRef.key
-//     // console.log('req  message= ',req.body.events[0].message)
-//     // console.log('req source = ', req.body.events[0].source)
-//     // console.log('body = ', req.body)
-//     // reply(reply_token,reply_message)
-//     // console.log('test ===', req)
-//     writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
-//     // writeLineData(data)
+    // var messageListRef = firebase.database().ref('message_list');
+    // var newMessageRef = messageListRef.push();
+    // newMessageRef.set({
+    //   'user_id': 'ada',
+    //   'text': 'Example of text.'
+    // });
+    // var postID = newPostRef.key
+    console.log('webhook replyToken= ',req.body.events[0].replyToken)
+    // console.log('req source = ', req.body.events[0].source)
+    // console.log('body = ', req.body)
+    // testReply(reply_token,message)
+    // console.log('test ===', req)
+    writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
+    insertGuoupLine(lineAdId,message)
+    // writeLineData(data)
 
-//     res.sendStatus(200)
-    res.send('test=')
+    res.sendStatus(200)
+    // res.send('test=')
     
     // console.log('test_message ===', test_message.text)
 })
@@ -86,14 +89,6 @@ app.post('/webhook', (req, res) => {
 app.get('/', function (req, res) {
     res.send('Hello World!')
   })
-
-// app.get('/getAllGroupLine', function (req, res) {
-//     con.query("SELECT * FROM groupline where active = 1 ", function (err, result, fields) {
-//         if (err) throw err;
-//         // console.log(result);
-//         res.json(result)
-//       });
-//  })
 
 
 
@@ -122,11 +117,6 @@ app.post("/message", async (req, res) => {
   });
 
 app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไปเก็บใน Firebase จากนั้นทำการกำหนด reply_message ส่งกลับไป ส่งได้ 5 message ต่อ 1 Token
-    // let reply_token = ''
-    // let reply_message = req.body.message
-    // let reply_to = req.body.sendTo
-    // let destination = req.body.senderlineUserId
-    // let reply_token : req.body.
     let data
     let reply_token = req.body.reply_token
     let message = req.body.message
@@ -136,10 +126,12 @@ app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไป�
     let type = req.body.type
     let read = req.body.read 
     let createdAt = req.body.createdAt
-    // console.log('req ==', req.body)
+    let accessToken = req.body.accessToken
+    console.log('req ==', req.body)
 
     data = {
         'reply_token' : reply_token,
+        'accessToken' : accessToken,
         'message' : message,
         'lineUserId' : lineUserId,
         'typeMessage' : typeMessage,
@@ -151,6 +143,7 @@ app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไป�
 
     firestore.collection("lineMessage").doc().set({
       reply_token : reply_token,
+      accessToken : accessToken,
       message : message,
       lineUserId : lineUserId,
       typeMessage : typeMessage,
@@ -160,73 +153,99 @@ app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไป�
       createdAt : createdAt
     })
 
-    reply(data)
+    replyDev(data)
     
     res.sendStatus(200)
 
 })
 
-app.post("/getProfile",(req,res)=>{
+app.post("/getProfile1", async (req,res)=>{
   // console.log('test == req == ', req.body)
 let userWeb = req.body.userWeb
 let userWebdata =[]
-let groupLinedata = []
-let reqProfile =[]
 
-firestore.collection("responsible").where('user','==',userWeb).onSnapshot((querySnapshot)=>{
-  querySnapshot.forEach((doc) => {
+const test = await firestore.collection("responsible").where('user','==',userWeb).get()
+test.forEach(doc => {
+  if (doc.data().active === 1) {
     userWebdata.push(doc.data())
+  }
+})
+
+for (let index = 0; index < userWebdata.length; index++) { //หา body ของ group line
+  // console.log('test = ', data)
+  let response = await firestore.collection("groupLine").where('groupLine_LineId','==',userWebdata[index].groupLine_UserId).get()
+  response.forEach(doc => {
+    Object.assign(userWebdata[index], {'groupLineBody' : doc.data()})
   })
   
-
-  for (let index = 0; index < userWebdata.length; index++) {
-    // console.log('test = ', data)
-    firestore.collection("groupLine").where('groupLine_LineId','==',userWebdata[index].groupLine_UserId).onSnapshot((querySnapshot)=>{
-      querySnapshot.forEach((doc) => {
-        userWebdata.push({'data' : doc.data()})
-        console.log('groupLinedata = ', userWebdata)
-        // console.log('userWebdata = ', userWebdata)
-    //     // data[index].push({'accessToken' : doc.data().groupLine_token})
-      })
-    })
-
-
-  }
-
-  for(let index = 0; index < userWebdata.length; index++){
-
-  }
-
+  let response2 = await firestore.collection("memberLineGroup").where('lineAdId','==',userWebdata[index].groupLine_UserId).get()
+  let member =[]
+  response2.forEach(doc => {
+    // Object.assign(userWebdata[index], {'member' : [doc.data()]})
+    if(userWebdata[index].groupLine_UserId === doc.data().lineAdId){
+      member.push(doc.data())
+    }
+    Object.assign(userWebdata[index], {'member' : [member]})
+   
+    // console.log(doc.data())
+  })
+}
+// res.json({data: member})
+res.json(userWebdata)
 })
-// res.send(req)
-res.sendStatus(200)
-})
+
+
+
+app.post("/getProfile", async (req,res)=>{
+  let profile = []
+  let headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer '+req.body.lineToken
+  }
+  try {
+    const response = await axios.get('https://api.line.me/v2/bot/profile/'+req.body.lineUserId,{headers})
+    console.log(response.data);
+    profile = response.data
+  } catch (error) {
+    console.error(error);
+  }
+  res.json({'profile' : profile})
+  })
+
+  app.get("/test",(req,res)=>{
+    res.send({'test' : 'test'})
+  })
+
+
 
 app.post("/broadcast",(req,res)=>{
  let msg = "ทดสอบ บอร์ดแคส"
  broadcast(msg)
 })
 
-app.get("/testapi",(req,res)=>{
-  let headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
-}
+// app.get("/testapi",(req,res)=>{
+// //   let headers = {
+// //     'Content-Type': 'application/json',
+// //     'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
+// // }
 
-  request.get({ //ดึงโปรไฟล์
-    url: 'https://api.line.me/v2/bot/profile/U24f73bc2b54e8d62bf34b892e6d67500',
-    headers: headers
+// //   request.get({ //ดึงโปรไฟล์
+// //     url: 'https://api.line.me/v2/bot/profile/U24f73bc2b54e8d62bf34b892e6d67500',
+// //     headers: headers
    
-}, (err, res, body) => {
-  // res.json(body)
-  // test.push(res)
-    // console.log('body = ', test)
-    console.log('respornc = ', JSON.parse(body))
-})
-})
+// // }, (err, res, body) => {
+// //   // res.json(body)
+// //   // test.push(res)
+// //     // console.log('body = ', test)
+// //     console.log('respornc = ', JSON.parse(body))
+// // })
+
+// })
 
 
-function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId) {
+
+
+async function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId) { //เก็บข้อมูลของ message
   // console.log('log data = ', item)
   let checkMember = ''
   let checkgroup = []
@@ -244,10 +263,7 @@ function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode
         
     })
 
-
 firestore.collection("memberLineGroup").where('lineUserId','==',lineUserId).onSnapshot((querySnapshot)=>{
-      // let lineAccessToken ='';
-      // let allData = [];
       let data = ''
       querySnapshot.forEach((doc) => {
         // checkMember.push(doc.data())
@@ -259,7 +275,7 @@ firestore.collection("memberLineGroup").where('lineUserId','==',lineUserId).onSn
         // console.log('test = ',checkMember)
         if(checkMember === '' ){
           console.log('status = true')
-        firestore.collection("memberLineGroup").doc().set({
+firestore.collection("memberLineGroup").doc().set({
             lineUserId : lineUserId,
             lineAdId : lineAdId,
             active : 1 ,
@@ -267,72 +283,29 @@ firestore.collection("memberLineGroup").where('lineUserId','==',lineUserId).onSn
           })
         }else console.log('status = false')
     })
-    // console.log('checkMember data =',checkMember)
-    // saveLineMember(lineUserId,lineAdId)
-    // get and set Profile member
-    // getAccessToken
-    // firestore.collection("groupLine").where('groupLine_LineId','==',lineAdId).onSnapshot((querySnapshot)=>{
-    //   let lineAccessToken ='';
-    //   // let allData = [];
-    //   querySnapshot.forEach((doc) => {
-    //     lineAccessToken = doc.data().groupLine_token
-    //     })
-    //     // allData=data
-    //     console.log('lineAccessToken data =',lineAccessToken)
-    // })
+}
 
+async function insertGuoupLine(lineAdId,message) {
+  let docId = ''
+  let groupLineName = ''
+  const checkGroup = await firestore.collection("groupLine").where('groupLine_name','==',message).onSnapshot((querySnapshot)=>{
+    querySnapshot.forEach((doc) => {
+      // console.log('data = ',doc.data)
+      docId = doc.id
+      groupLineName = doc.data().groupLine_name
+      // data = doc.data().groupLine_name
+    })
+    // console.log('docId = ', docId)
+    // console.log('groupLineName = ', groupLineName)
+    if(groupLineName === message){
+      firestore.collection("groupLine").doc(docId).update({
+        groupLine_LineId : lineAdId
+      })
+    }else console.log('log no result')
+  })
 }
 
 
-// function saveLineMember(lineUserId,lineAdId) {
-  // console.log('lineUserId = ', lineUserId)
-  // console.log('lineAdId = ', lineAdId)
-
-  // let lineAccessToken = ''
-  // let userID = ''
-  // let displyName = ''
-  // let pictureUrl = ''
-  // let statusLine = ''
-  // let vlineAdId = lineAdId
-
-  // console.log('vlineAdId= ', vlineAdId)
-  // firestore.collection("groupLine").where('groupLine_LineId','==' , vlineAdId).onSnapshot((querySnapshot)=>{
-  //   let data
-  //     querySnapshot.forEach((doc) => {
-  //       lineAccessToken = doc.data().groupLine_LineId
-  //       })
-  //       console.log('lineAccessToken data =',lineAccessToken)
-  //   })
-
-
-  //   let headers = {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': 'Bearer '+lineAccessToken+''
-  // }
-
-  //   request.get({ //ดึงโปรไฟล์
-  //     url: 'https://api.line.me/v2/bot/profile/'+lineUserId,
-  //     headers: headers
-     
-  // }, (err, res, body) => {
-  //     console.log('body = ', JSON.parse(body))
-  //     // console.log('respornc = ' + res);
-  //     userID = JSON.parse(body.userID)
-  //     displyName = JSON.parse(body.displyName)
-  //     pictureUrl = JSON.parse(body.pictureUrl)
-  //     statusLine = JSON.parse(body.statusLine)
-
-  // })
-
-  // firestore.collection("lineMember").doc().set({
-  //   lineUserId : userID,
-  //   displyName : displyName,
-  //   pictureUrl : pictureUrl,
-  //   statusLine : statusLine,
-  //   lineAdId : lineAdId
-  // })
-  
-// }
 
 
 
@@ -346,8 +319,8 @@ function reply(data) {
         'Authorization': 'Bearer '+lineAccessToken+''
     }
     let body = JSON.stringify({
-        // replyToken: reply_token,
-        to: data.lineUserId,
+        replyToken: reply_token,
+        // to: data.lineUserId,
         messages: [{
             type: 'text',
             text: data.message
@@ -357,8 +330,8 @@ function reply(data) {
     // console.log('body = ', body)
 
     request.post({
-        // url: 'https://api.line.me/v2/bot/message/reply',
-        url: 'https://api.line.me/v2/bot/message/push',
+        url: 'https://api.line.me/v2/bot/message/reply',
+        // url: 'https://api.line.me/v2/bot/message/push',
         headers: headers,
         body: body
        
@@ -366,6 +339,54 @@ function reply(data) {
         // console.log('body = ', body)
         console.log('status = ' + res.statusCode);
     })
+
+    //
+}
+
+function replyDev(data) {
+  console.log('data = ', data)
+  let headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer '+data.accessToken+''
+  }
+  let replyBody = JSON.stringify({
+    replyToken: data.reply_token,
+    messages: [{
+        type: 'text',
+        text: data.message
+    }]
+  }) 
+  let pushBody = JSON.stringify({
+    to: data.lineUserId,
+    messages: [{
+        type: 'text',
+        text: data.message
+    }]
+  }) 
+  console.log('reply token = ', data.reply_token)
+  axios.post('https://api.line.me/v2/bot/message/reply',replyBody,{headers}).then(response => {
+    console.log('Reply response = ', response.status)
+
+  }).catch(err =>{
+    console.log('Reply statusCode =',err.response.status)
+    console.log('statusMessage =',err.response.data.message)
+    // console.log('err = ',err)
+    // statusCode: 401,
+    //   statusMessage: 'Unauthorized',
+    axios.post('https://api.line.me/v2/bot/message/push',pushBody,{headers}).then(response => {
+        console.log('Push response = ', response.status)
+
+      }).catch(err =>{
+        console.log('statusCode =',err.response.status)
+        // console.log('statusMessage =',err.response.data.message)
+        // console.log('err = ',err)
+        // statusCode: 401,
+        //   statusMessage: 'Unauthorized',
+        console.log('statusMessage =',err.response.data.message)
+        console.log('Push test catch ')
+      })
+  })
+
 }
 
 
@@ -403,15 +424,6 @@ function broadcast(msg) {
 
 function test() {
   let test = [];
-  // firestore.collection("groupLine").where('groupLine_LineId','==','U24f73bc2b54e8d62bf34b892e6d67500').onSnapshot((querySnapshot)=>{
-  //   let lineAccessToken = '';
-  //   // let allData = [];
-  //   querySnapshot.forEach((doc) => {
-  //     lineAccessToken = doc.data().groupLine_token
-  //     })
-  //     // allData=data
-  //     console.log('test data =',lineAccessToken)
-  // })
 
   let headers = {
     'Content-Type': 'application/json',
@@ -428,8 +440,7 @@ function test() {
     // console.log('body = ', test)
     console.log('respornc = ', res.body);
 })
-  
-  // console.log('test data ',this.messageByUser.sort())
+
 }
 
 
