@@ -6,7 +6,7 @@ const firebase = require('firebase')
 // const mysql = require('mysql'); 
 const firebaseKey = require("firebase-key");
 const axios = require('axios');
-
+var port = process.env.PORT || 3000
 const firebaseConfig = { //firebase
     apiKey: "AIzaSyBR0kstVOmbMCE6WuaSiXImg5hCAcTpowM",
     authDomain: "messages-d18e7.firebaseapp.com",
@@ -92,9 +92,13 @@ app.get('/', function (req, res) {
 
 
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
-})
+// app.listen(3000, function () {
+//   console.log('Example app listening on port 3000!')
+// })
+
+app.listen(port, function() {
+  console.log("App is running on port " + port);
+});
 
 
 // insert Message Line
