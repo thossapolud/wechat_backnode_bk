@@ -4,9 +4,10 @@ const request = require('request')
 const lineAccessToken = "rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU="
 const firebase = require('firebase')
 // const mysql = require('mysql'); 
+const mysql = require('mysql');
 const firebaseKey = require("firebase-key");
 const axios = require('axios');
-var port = process.env.PORT || 3000
+var port = process.env.PORT || 8000
 const firebaseConfig = { //firebase
     apiKey: "AIzaSyBR0kstVOmbMCE6WuaSiXImg5hCAcTpowM",
     authDomain: "messages-d18e7.firebaseapp.com",
@@ -20,6 +21,8 @@ const firebaseConfig = { //firebase
   firebase.initializeApp(firebaseConfig);
   const firestore = firebase.firestore();
   
+
+
 //-------
 
 const bodyParser = require('body-parser')
@@ -81,7 +84,7 @@ app.post('/webhook', (req, res) => {
     // writeLineData(data)
 
     res.sendStatus(200)
-//     res.send('test=')
+    // res.send('test=')
     
     // console.log('test_message ===', test_message.text)
 })
@@ -90,7 +93,52 @@ app.get('/', function (req, res) {
     res.send('Hello World!')
   })
 
+  const pool  = mysql.createPool({
+    connectionLimit : 10,
+    host            : 'bacc9.com',
+    port            : '3306',
+    user            : 'bacc9_xmen',
+    password        : 'Bonchon18++',
+    database        : "bacc9_line"
+  });
 
+app.get('/testMysql',function (req,res){
+  // console.log('pool = ', pool)
+  try{
+    pool.getConnection(function (err, conn) {
+      if (err){
+        console.log('err = ', err)
+        return res.json({'status':err})
+      }
+      console.log('conn =', conn)
+    conn.query('SELECT * FROM user', function(err, rows) {
+        if(err) {
+            conn.release();
+            return res.send(400, 'Couldnt get a connection');
+        }
+        res.send(rows);
+        conn.release();
+      })
+  })
+}catch(err){
+    console.log(err)
+    res.json({error:err})
+
+  }
+  
+})
+
+
+app.post('/multicast', (req, res) => {
+  try{
+console.log('log = ', req.body)
+let data = req.body
+lineMulticast(data)
+res.json({message : 'success'})
+}catch(err){
+  res.json({message : err})
+}
+})
 
 // app.listen(3000, function () {
 //   console.log('Example app listening on port 3000!')
@@ -118,6 +166,7 @@ app.post("/message", async (req, res) => {
     } catch (error) {
       res.status(400).json({ success: false, message: error.message });
     }
+
   });
 
 app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไปเก็บใน Firebase จากนั้นทำการกำหนด reply_message ส่งกลับไป ส่งได้ 5 message ต่อ 1 Token
@@ -392,8 +441,40 @@ function replyDev(data) {
   })
 
 }
+// function lineMulticast(userID,accessToken) {
+function lineMulticast(data) {
+  console.log('data = ', data)
+  let headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer '+data.groupToken+''
+  }
+  let pushBody = JSON.stringify({
+    to: data.SelectlineMember,
+    messages: [{
+        type: 'text',
+        text: data.message
+    }]
+  }) 
 
+  // console.log('userID = ',userID)
 
+  // res.json({data : userID})
+  axios.post('https://api.line.me/v2/bot/message/multicast',pushBody,{headers}).then(response => {
+        console.log('Push response = ', response.status)
+        firestore.collection("broadcast").doc().set({
+                              'groupToken' : data.groupToken,
+                                'message'  : data.message,
+                        'SelectlineMember' : data.SelectlineMember,
+                        'createdAt' : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+                    })     
+
+      }).catch(err =>{
+        console.log('statusCode =',err.response.status)
+        console.log('statusMessage =',err.response.data.message)
+        console.log('Push test catch ')
+      })
+      res.json({message : 'success'})
+}
 
 function broadcast(msg) {
     let headers = {
