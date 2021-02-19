@@ -291,8 +291,8 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
         if(checkMember === '' ){
           console.log('status = true')
         firestore.collection("memberLineGroup").doc().set({
-                    lineUserId : lineUserId,
-                    lineAdId : lineAdId,
+                    lineUserId : msgarray.source.userId,
+                    lineAdId : vlineAdId,
                     active : 1 ,
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
                   })
