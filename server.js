@@ -321,7 +321,7 @@ async function insertGuoupLine(lineAdId,message) {
   let docId = ''
   let groupLineName = ''
   let lineAtID = ''
-  const checkGroup = await firestore.collection("groupLine").where('groupLine_name','==',message).onSnapshot((querySnapshot)=>{
+  const checkGroup = await firestore.collection("groupLine").where('lineAtID','==',message).onSnapshot((querySnapshot)=>{
     querySnapshot.forEach((doc) => {
       // console.log('data = ',doc.data)
       docId = doc.id
