@@ -320,16 +320,19 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
 async function insertGuoupLine(lineAdId,message) {
   let docId = ''
   let groupLineName = ''
+  let lineAtID = ''
   const checkGroup = await firestore.collection("groupLine").where('groupLine_name','==',message).onSnapshot((querySnapshot)=>{
     querySnapshot.forEach((doc) => {
       // console.log('data = ',doc.data)
       docId = doc.id
       groupLineName = doc.data().groupLine_name
+      lineAtID = doc.data().lineAtID
+
       // data = doc.data().groupLine_name
     })
     // console.log('docId = ', docId)
     // console.log('groupLineName = ', groupLineName)
-    if(groupLineName === message){
+    if(lineAtID === message){
       firestore.collection("groupLine").doc(docId).update({
         groupLine_LineId : lineAdId
       })
