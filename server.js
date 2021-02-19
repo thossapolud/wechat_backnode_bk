@@ -68,7 +68,7 @@ app.post('/webhook', async (req, res) => {
     res.send('test')
   }else if(req.body.events.length >= 1){
     writeLineData(req.body.events[0],req.body.destination)
-    // insertGuoupLine(req.body.destination,req.body.events[0].message.text)
+    insertGuoupLine(req.body.destination,req.body.events[0].message.text)
     res.json({'message':'success'})
     // }
     
