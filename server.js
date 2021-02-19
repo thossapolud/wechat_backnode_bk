@@ -3,6 +3,7 @@ const app = express()
 const request = require('request')
 const lineAccessToken = "rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU="
 const firebase = require('firebase')
+const imageToBase64 = require('image-to-base64');
 // const mysql = require('mysql'); 
 const mysql = require('mysql');
 const firebaseKey = require("firebase-key");
@@ -20,6 +21,7 @@ const firebaseConfig = { //firebase
   };
   firebase.initializeApp(firebaseConfig);
   const firestore = firebase.firestore();
+  const fs = require('fs')
   
 
 
@@ -56,78 +58,27 @@ app.use(function (req, res, next) { // แก้ Access-Control-Allow-Origin
 
 
 //-----line
-app.post('/webhook', (req, res) => {
-    let data
-    let reply_token = req.body.events[0].replyToken //ส่งกลับไปยัง user ที่ไลน์เข้ามา
-    let message = req.body.events[0].message.text //msg สำหรับการ reply หรือเอาไปเก็บที่ data base
-    let lineUserId = req.body.events[0].source.userId
-    let typeMessage = req.body.events[0].source.type
-    let timestamp = req.body.events[0].timestamp //เวลาส่งไลน์
-    let mode =req.body.events[0].mode
-    let lineAdId =req.body.destination
-    // console.log('firebaseKey = ', firebaseKey.key());
-
-    // var messageListRef = firebase.database().ref('message_list');
-    // var newMessageRef = messageListRef.push();
-    // newMessageRef.set({
-    //   'user_id': 'ada',
-    //   'text': 'Example of text.'
-    // });
-    // var postID = newPostRef.key
-    console.log('webhook replyToken= ',req.body.events[0].replyToken)
-    // console.log('req source = ', req.body.events[0].source)
-    // console.log('body = ', req.body)
-    // testReply(reply_token,message)
-    // console.log('test ===', req)
-    writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId)
-    insertGuoupLine(lineAdId,message)
-    // writeLineData(data)
-
-    res.sendStatus(200)
-    // res.send('test=')
+app.post('/webhook', async (req, res) => {
+  // let checkData = []
+  // checkData = req.body.events
+  // console.log('req =', req)
+  console.log('data = ', req.body.events.length)
+  if(req.body.events.length === 0){
+    console.log('true')
+    res.send('test')
+  }else if(req.body.events.length >= 1){
+    writeLineData(req.body.events[0],req.body.destination)
+    // insertGuoupLine(req.body.destination,req.body.events[0].message.text)
+    res.json({'message':'success'})
+    // }
     
-    // console.log('test_message ===', test_message.text)
+  }
+    
 })
 
 app.get('/', function (req, res) {
     res.send('Hello World!')
   })
-
-  const pool  = mysql.createPool({
-    connectionLimit : 10,
-    host            : 'bacc9.com',
-    port            : '3306',
-    user            : 'bacc9_xmen',
-    password        : 'Bonchon18++',
-    database        : "bacc9_line"
-  });
-
-app.get('/testMysql',function (req,res){
-  // console.log('pool = ', pool)
-  try{
-    pool.getConnection(function (err, conn) {
-      if (err){
-        console.log('err = ', err)
-        return res.json({'status':err})
-      }
-      console.log('conn =', conn)
-    conn.query('SELECT * FROM user', function(err, rows) {
-        if(err) {
-            conn.release();
-            return res.send(400, 'Couldnt get a connection');
-        }
-        res.send(rows);
-        conn.release();
-      })
-  })
-}catch(err){
-    console.log(err)
-    res.json({error:err})
-
-  }
-  
-})
-
 
 app.post('/multicast', (req, res) => {
   try{
@@ -212,42 +163,39 @@ app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไป�
 
 })
 
-app.post("/getProfile1", async (req,res)=>{
-  // console.log('test == req == ', req.body)
-let userWeb = req.body.userWeb
-let userWebdata =[]
-
-const test = await firestore.collection("responsible").where('user','==',userWeb).get()
-test.forEach(doc => {
-  if (doc.data().active === 1) {
-    userWebdata.push(doc.data())
+app.get("/getphoto",(req,res)=>{
+  const headers = {
+    // 'Content-Type': 'multipart/form-data',
+    'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
   }
-})
-
-for (let index = 0; index < userWebdata.length; index++) { //หา body ของ group line
-  // console.log('test = ', data)
-  let response = await firestore.collection("groupLine").where('groupLine_LineId','==',userWebdata[index].groupLine_UserId).get()
-  response.forEach(doc => {
-    Object.assign(userWebdata[index], {'groupLineBody' : doc.data()})
+ let data = null
+     axios.get('https://api-data.line.me/v2/bot/message/13573457833197/content',{headers}).then(response => {
+      console.log('response = ', response)
+      // fs.writeFile('/desktop', 'abc', function (err,data) {
+      //   if (err) {
+      //     return console.log(err);
+      //   }
+      //   console.log(data);
+      // });
+      // console.log('base64 = ',Buffer.from(response.data).toString('base64'))
+      res.json({'data' : Buffer.from(response.data).toString('base64')})
+      // res.json({'data' : Buffer.from(response.data).toString('base64'))
+     
+      // var metadata = {
+      //   contentType: 'image/jpeg',
+      // };
+      
+      // Upload the file and metadata
+      // var uploadTask = storageRef.child('images/mountains.jpg').put(response.data, metadata);
+      //   }).catch(function (error) {
+      //     console.log('error =' , error);
+      //     // res.json(error, error.message)
+      //     errormsg = error.message
+      //     // res.json({'errormsg' : errormsg})
+      //   })
   })
   
-  let response2 = await firestore.collection("memberLineGroup").where('lineAdId','==',userWebdata[index].groupLine_UserId).get()
-  let member =[]
-  response2.forEach(doc => {
-    // Object.assign(userWebdata[index], {'member' : [doc.data()]})
-    if(userWebdata[index].groupLine_UserId === doc.data().lineAdId){
-      member.push(doc.data())
-    }
-    Object.assign(userWebdata[index], {'member' : [member]})
-   
-    // console.log(doc.data())
-  })
-}
-// res.json({data: member})
-res.json(userWebdata)
 })
-
-
 
 app.post("/getProfile", async (req,res)=>{
   let profile = []
@@ -276,47 +224,61 @@ app.post("/broadcast",(req,res)=>{
  broadcast(msg)
 })
 
-// app.get("/testapi",(req,res)=>{
-// //   let headers = {
-// //     'Content-Type': 'application/json',
-// //     'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
-// // }
+// function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId,msgarray) { //เก็บข้อมูลของ message
+async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมูลของ message
+  // console.log('log data = ', msgarray) 
+  // let checkMember = ''
+  // let checkgroup = []
 
-// //   request.get({ //ดึงโปรไฟล์
-// //     url: 'https://api.line.me/v2/bot/profile/U24f73bc2b54e8d62bf34b892e6d67500',
-// //     headers: headers
-   
-// // }, (err, res, body) => {
-// //   // res.json(body)
-// //   // test.push(res)
-// //     // console.log('body = ', test)
-// //     console.log('respornc = ', JSON.parse(body))
-// // })
+  if(msgarray.message.type === 'sticker'){
+      console.log('sticker')
+      console.log('log = ',msgarray )
 
-// })
-
-
-
-
-async function writeLineData(reply_token,message,lineUserId,typeMessage,timestamp,mode,lineAdId) { //เก็บข้อมูลของ message
-  // console.log('log data = ', item)
-  let checkMember = ''
-  let checkgroup = []
+      // let headers = {
+      //   'Content-Type': 'application/json',
+      //   'Authorization': 'Bearer rFAGe4VwQUA4972XjGQN1fTbtPEBAYp15hpo36+CpNezcj0+BBHI05gdRkefF0pQA3AwsU1Rz3vwZON0hJ12TAkiEWE8yHMD51YD+TkRWsBqHrmwYi+w/JkSenQcYZSybbPiAtJLOQfgGcoPfR2DGgdB04t89/1O/w1cDnyilFU='
+      // }
+      // let replyBody = JSON.stringify({
+      //   replyToken: msgarray.replyToken,
+      //   messages: [{
+      //       type: 'text',
+      //       text: 'https://stickershop.line-scdn.net/stickershop/v1/sticker/'+msgarray.message.stickerId+'/iPhone/sticker@2x.png'
+      //   }]
+      // }) 
+    //   axios.post('https://api.line.me/v2/bot/message/reply',replyBody,{headers}).then(response => {
+    // console.log('test ')
+    //   })
     firestore.collection("lineMessage").doc().set({
-      reply_token : reply_token,
-      message : message,
-      lineUserId : lineUserId,
-      typeMessage : typeMessage,
-      timestamp : timestamp,
-        vmode : mode,
-        lineAdId : lineAdId,
+      reply_token : msgarray.replyToken,
+      message : 'https://stickershop.line-scdn.net/stickershop/v1/sticker/'+msgarray.message.stickerId+'/iPhone/sticker@2x.png',
+      lineUserId : msgarray.source.userId,
+      typeMessage : msgarray.message.type,
+      timestamp : msgarray.timestamp,
+        vmode : msgarray.mode,
+        lineAdId : vlineAdId,
         type : 'in',
         read : 0,
         createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
-        
     })
+      
 
-firestore.collection("memberLineGroup").where('lineUserId','==',lineUserId).onSnapshot((querySnapshot)=>{
+    }else if(msgarray.message.type === 'text'){
+      console.log('text')
+
+    firestore.collection("lineMessage").doc().set({
+          reply_token : msgarray.replyToken,
+          message : msgarray.message.text,
+          lineUserId : msgarray.source.userId,
+          typeMessage : msgarray.message.type,
+          timestamp : msgarray.timestamp,
+            vmode : msgarray.mode,
+            lineAdId : vlineAdId,
+            type : 'in',
+            read : 0,
+            createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+        })
+
+        firestore.collection("memberLineGroup").where('lineUserId','==',msgarray.source.userId).onSnapshot((querySnapshot)=>{
       let data = ''
       querySnapshot.forEach((doc) => {
         // checkMember.push(doc.data())
@@ -328,14 +290,31 @@ firestore.collection("memberLineGroup").where('lineUserId','==',lineUserId).onSn
         // console.log('test = ',checkMember)
         if(checkMember === '' ){
           console.log('status = true')
-firestore.collection("memberLineGroup").doc().set({
-            lineUserId : lineUserId,
-            lineAdId : lineAdId,
-            active : 1 ,
-            createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
-          })
-        }else console.log('status = false')
-    })
+        firestore.collection("memberLineGroup").doc().set({
+                    lineUserId : lineUserId,
+                    lineAdId : lineAdId,
+                    active : 1 ,
+                    createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+                  })
+                }else console.log('status = false')
+            })
+
+    }else if(msgarray.message.type === 'image'){
+      console.log('image')
+      console.log('image = ',msgarray )
+      firestore.collection("lineMessage").doc().set({
+        reply_token : msgarray.replyToken,
+        message :'https://api-data.line.me/v2/bot/message/'+msgarray.message.id+'/content',
+        lineUserId : msgarray.source.userId,
+        typeMessage : msgarray.message.type,
+        timestamp : msgarray.timestamp,
+          vmode : msgarray.mode,
+          lineAdId : vlineAdId,
+          type : 'in',
+          read : 0,
+          createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+      })
+    }
 }
 
 async function insertGuoupLine(lineAdId,message) {
