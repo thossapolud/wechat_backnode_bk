@@ -299,7 +299,7 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
                     latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
                   })
-                }else firestore.collection("memberLineGroup").doc(this.index).update({
+                }else firestore.collection("memberLineGroup").doc(index).update({
                   latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
               })
               console.log('status = false')
