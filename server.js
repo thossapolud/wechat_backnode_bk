@@ -120,7 +120,7 @@ app.post("/message", async (req, res) => {
 
   });
 
-app.post("/reply/",(req,res)=>{ // นำ reply_token ที่ได้ไปเก็บใน Firebase จากนั้นทำการกำหนด reply_message ส่งกลับไป ส่งได้ 5 message ต่อ 1 Token
+app.post("/reply",(req,res)=>{ // นำ reply_token ที่ได้ไปเก็บใน Firebase จากนั้นทำการกำหนด reply_message ส่งกลับไป ส่งได้ 5 message ต่อ 1 Token
     let data
     let reply_token = req.body.reply_token
     let message = req.body.message
@@ -280,9 +280,11 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
 
         firestore.collection("memberLineGroup").where('lineUserId','==',msgarray.source.userId).onSnapshot((querySnapshot)=>{
       let data = ''
+      let index = ''
       querySnapshot.forEach((doc) => {
         // checkMember.push(doc.data())
         data = doc.data().lineUserId
+        index = doc.id
         // allData.push(doc.data())
         })
         // console.log('checkMember data1 =',checkMember)
@@ -294,9 +296,13 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     lineUserId : msgarray.source.userId,
                     lineAdId : vlineAdId,
                     active : 1 ,
-                    createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+                    createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
+                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
                   })
-                }else console.log('status = false')
+                }else db.collection("memberLineGroup").doc(this.index).update({
+                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+              })
+              console.log('status = false')
             })
 
     }else if(msgarray.message.type === 'image'){
