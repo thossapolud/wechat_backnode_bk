@@ -285,6 +285,7 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
         // checkMember.push(doc.data())
         data = doc.data().lineUserId
         index = doc.id
+        vcountMsg = doc.data().countMsg
         // allData.push(doc.data())
         })
         // console.log('checkMember data1 =',checkMember)
@@ -299,12 +300,12 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
                     latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
                     lastMsg : msgarray.message.text,
-                    countMsg : +1
+                    countMsg : vcountMsg+1
                   })
                 }else firestore.collection("memberLineGroup").doc(index).update({
                   latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
                   lastMsg : msgarray.message.text,
-                  countMsg : +1
+                  countMsg : vcountMsg+1
               })
               console.log('status = false')
             })
