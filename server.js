@@ -63,15 +63,15 @@ app.post('/webhook', async (req, res) => {
   // checkData = req.body.events
   // console.log('req =', req)
   console.log('data = ', req.body.events.length)
-  if(req.body.events.length === 0){
+  if(req.body.events.length = 0){
     console.log('true')
     res.send('test')
   }else if(req.body.events.length >= 1){
     writeLineData(req.body.events[0],req.body.destination)
     insertGuoupLine(req.body.destination,req.body.events[0].message.text)
+    console.log('false');
     res.json({'message':'success'})
     // }
-    
   }
     
 })
