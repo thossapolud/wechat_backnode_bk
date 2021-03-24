@@ -207,10 +207,10 @@ app.post("/getProfile", async (req,res)=>{
     const response = await axios.get('https://api.line.me/v2/bot/profile/'+req.body.lineUserId,{headers})
     console.log(response.data);
     profile = response.data
+    res.json({'profile' : profile})
   } catch (error) {
     console.error(error);
   }
-  res.json({'profile' : profile})
   })
 
   app.get("/test",(req,res)=>{
@@ -297,10 +297,12 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     lineAdId : vlineAdId,
                     active : 1 ,
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
+                    lastMsg : msgarray.message.text
                   })
                 }else firestore.collection("memberLineGroup").doc(index).update({
-                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
+                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
+                  lastMsg : msgarray.message.text
               })
               console.log('status = false')
             })
