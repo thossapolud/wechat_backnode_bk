@@ -298,11 +298,13 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     active : 1 ,
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
                     latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                    lastMsg : msgarray.message.text
+                    lastMsg : msgarray.message.text,
+                    countMsg : +1
                   })
                 }else firestore.collection("memberLineGroup").doc(index).update({
                   latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                  lastMsg : msgarray.message.text
+                  lastMsg : msgarray.message.text,
+                  countMsg : +1
               })
               console.log('status = false')
             })
