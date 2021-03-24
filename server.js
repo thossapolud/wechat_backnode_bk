@@ -297,12 +297,10 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     lineAdId : vlineAdId,
                     active : 1 ,
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                    lastMsg : msgarray.message.text
+                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
                   })
                 }else firestore.collection("memberLineGroup").doc(index).update({
-                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                  lastMsg : msgarray.message.text
+                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
               })
               console.log('status = false')
             })
