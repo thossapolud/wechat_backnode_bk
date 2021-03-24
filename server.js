@@ -63,15 +63,15 @@ app.post('/webhook', async (req, res) => {
   // checkData = req.body.events
   // console.log('req =', req)
   console.log('data = ', req.body.events.length)
-  if(req.body.events.length = 0){
+  if(req.body.events.length === 0){
     console.log('true')
     res.send('test')
   }else if(req.body.events.length >= 1){
     writeLineData(req.body.events[0],req.body.destination)
     insertGuoupLine(req.body.destination,req.body.events[0].message.text)
-    console.log('false');
     res.json({'message':'success'})
     // }
+    
   }
     
 })
@@ -285,7 +285,6 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
         // checkMember.push(doc.data())
         data = doc.data().lineUserId
         index = doc.id
-        vcountMsg = doc.data().countMsg
         // allData.push(doc.data())
         })
         // console.log('checkMember data1 =',checkMember)
@@ -298,19 +297,12 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     lineAdId : vlineAdId,
                     active : 1 ,
                     createdAt : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                    lastMsg : msgarray.message.text,
-                    countMsg : vcountMsg+1
+                    latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
                   })
-                  break ;
-                }else if(checkMember !== ''){firestore.collection("memberLineGroup").doc(index).update({
-                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
-                  lastMsg : msgarray.message.text,
-                  countMsg : vcountMsg+1
+                }else firestore.collection("memberLineGroup").doc(index).update({
+                  latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" }))
               })
               console.log('status = false')
-              break;
-            }
             })
 
     }else if(msgarray.message.type === 'image'){
