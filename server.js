@@ -302,14 +302,14 @@ async function writeLineData(msgarray,vlineAdId) { //เก็บข้อมู
                     lastMsg : msgarray.message.text,
                     countMsg : vcountMsg+1
                   })
-                  // break ;
+                  break ;
                 }else if(checkMember !== ''){firestore.collection("memberLineGroup").doc(index).update({
                   latestMsg : (new Date().toLocaleString("tr-TR", { timeZone: "UTC" })),
                   lastMsg : msgarray.message.text,
                   countMsg : vcountMsg+1
               })
               console.log('status = false')
-              // break;
+              break;
             }
             })
 
